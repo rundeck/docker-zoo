@@ -8,11 +8,15 @@ services:
           - ldap
         environment:
             RUNDECK_JAAS_MODULES_0: JettyCombinedLdapLoginModule
+            RUNDECK_JAAS_LDAP_FLAG: sufficient
             RUNDECK_JAAS_LDAP_PROVIDERURL: ldap://ldap:389
             RUNDECK_JAAS_LDAP_BINDDN: cn=admin,dc=rdtest,dc=com
             RUNDECK_JAAS_LDAP_BINDPASSWORD: AdminPass123
             RUNDECK_JAAS_LDAP_USERBASEDN: ou=users,dc=rdtest,dc=com
             RUNDECK_JAAS_LDAP_ROLEBASEDN: ou=roles,dc=rdtest,dc=com
+
+            RUNDECK_JAAS_MODULES_1: PropertyFileLoginModule
+            RUNDECK_JAAS_FILE_FLAG: sufficient
         ports:
           - 4440:4440
     ldap:
