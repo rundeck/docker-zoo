@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+    rundeck:
+        image: rundeck/rundeck:SNAPSHOT
+        volumes:
+          - data:/home/rundeck/server/data
+        ports:
+          - 4440:4440
+
+volumes:
+    data:
