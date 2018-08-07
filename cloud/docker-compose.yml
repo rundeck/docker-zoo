@@ -1,0 +1,37 @@
+version: '3'
+
+services:
+    rundeck:
+        build: ./
+        links:
+          - mysql
+        environment:
+            RUNDECK_DATABASE_DRIVER: com.mysql.jdbc.Driver
+            RUNDECK_DATABASE_USERNAME: rundeck
+            RUNDECK_DATABASE_PASSWORD: rundeck
+            RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false
+            RUNDECK_PLUGIN_EXECUTIONFILESTORAGE: org.rundeck.amazon-s3
+            RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET: ${RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET}
+            RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION: ${RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION}
+            RUNDECK_STORAGE_CONVERTER_1_CONFIG_PASSWORD: ${RUNDECK_STORAGE_PASSWORD}
+            RUNDECK_CONFIG_STORAGE_CONVERTER_1_CONFIG_PASSWORD: ${RUNDECK_STORAGE_PASSWORD}
+        volumes:
+          - data:/home/rundeck/server/data
+          - ${AWS_CREDENTIALS}:/home/rundeck/.aws/credentials
+        ports:
+          - 4440:4440
+    mysql:
+        image: mysql:5.7
+        expose:
+          - 3306
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=rundeck
+          - MYSQL_USER=rundeck
+          - MYSQL_PASSWORD=rundeck
+        volumes:
+          - dbdata:/var/lib/mysql
+
+volumes:
+    data:
+    dbdata:
