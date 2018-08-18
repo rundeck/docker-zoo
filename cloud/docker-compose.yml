@@ -2,15 +2,20 @@ version: '3'
 
 services:
     rundeck:
-        build: ./
+        build:
+            context: ./
+            args:
+                RUNDECK_IMAGE: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
         links:
           - mysql
         environment:
+            RUNDECK_GRAILS_URL: http://localhost
+            RUNDECK_SERVER_FORWARDED: 'true'
             RUNDECK_DATABASE_DRIVER: com.mysql.jdbc.Driver
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false
-            RUNDECK_PLUGIN_EXECUTIONFILESTORAGE: org.rundeck.amazon-s3
+            RUNDECK_PLUGIN_EXECUTIONFILESTORAGE: com.rundeck.rundeckpro.amazon-s3
             RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET: ${RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET}
             RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION: ${RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION}
             RUNDECK_STORAGE_CONVERTER_1_CONFIG_PASSWORD: ${RUNDECK_STORAGE_PASSWORD}
@@ -18,8 +23,15 @@ services:
         volumes:
           - data:/home/rundeck/server/data
           - ${AWS_CREDENTIALS}:/home/rundeck/.aws/credentials
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+    nginx:
+        image: nginx
+        links:
+          - rundeck
+        volumes:
+          - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
         ports:
-          - 4440:4440
+          - 80:80
     mysql:
         image: mysql:5.7
         expose:
