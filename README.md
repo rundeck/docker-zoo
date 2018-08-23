@@ -18,7 +18,7 @@ as well as a reference and starting place for your own deployments.
 * [oracle](./oracle)
 
 ### Kubernetes
-* [kubernetes](./kubernetes)
+* `Pro` [kubernetes](./kubernetes)
 
 ### Plugin Bundling
 * [cloud](./cloud)

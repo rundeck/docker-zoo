@@ -4,8 +4,6 @@ services:
     rundeck:
         image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
         tty: true
-        environment:
-            RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_ENABLED: "true"
         volumes:
           - data:/home/rundeck/server/data
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
