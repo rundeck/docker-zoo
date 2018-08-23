@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  ports:
+    - port: 3306
+      targetPort: 3306
+      protocol: TCP
+  selector:
+    app: mysql
+  type: LoadBalancer
+
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: mysql
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - image: mysql:5.7
+        args:
+        - "--ignore-db-dir=lost+found"
+        name: mysql
+        env:
+          # Use secret in real usage
+        - name: "MYSQL_ROOT_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-rundeckuser
+              key: password
+        - name: "MYSQL_DATABASE"
+          value: rundeckdb
+        - name: "MYSQL_USER"
+          value: rundeck
+        - name: "MYSQL_PASSWORD"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-rundeckuser
+              key: password
+        ports:
+        - containerPort: 3306
+          name: mysql
+        volumeMounts:
+        - name: mysql-persistent-storage
+          mountPath: /var/lib/mysql
+      volumes:
+      - name: mysql-persistent-storage
+        persistentVolumeClaim:
+          claimName: mysql-pv-claim

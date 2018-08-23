@@ -1,0 +1,119 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: rundeckpro
+spec:
+  type: LoadBalancer
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 4440
+  selector:
+    app: rundeckpro
+  externalTrafficPolicy: Local
+  sessionAffinity: ClientIP
+
+---
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: rundeckpro
+  namespace: default
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: rundeckpro
+    spec:
+      containers:
+      - name: rundeck
+        image: rundeckpro/cluster:SNAPSHOT
+        volumeMounts:
+          - mountPath: /home/rundeck/etc/rundeckpro-license.key
+            name: license
+            subPath: rundeckpro-license.key
+          - mountPath: /home/rundeck/etc/admin-role.aclpolicy
+            name: acl
+            subPath: admin-role.aclpolicy
+        env:
+        - name: RUNDECK_GRAILS_URL
+          value: "http://localhost:8080"
+        - name: RUNDECK_DATABASE_DRIVER
+          value: "com.mysql.jdbc.Driver"
+        - name: RUNDECK_DATABASE_URL
+          value: "jdbc:mysql://mysql.default.svc.cluster.local:3306/rundeckdb?autoReconnect=true&useSSL=false"
+        - name: RUNDECK_DATABASE_USERNAME
+          value: "rundeck"
+        - name: RUNDECK_DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-rundeckuser
+              key: password
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE
+          value: "com.rundeck.rundeckpro.amazon-s3"
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_NAME
+          value: "com.rundeck.rundeckpro.amazon-s3"
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET
+          value: "rundeck"
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION
+          value: "us-east-2"
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_ENDPOINT
+          value: "http://minio.default.svc.cluster.local:9000"
+        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_PATHSTYLE
+          value: "true"
+        - name: AWS_ACCESS_KEY_ID
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awskey
+        - name: AWS_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awssecret
+        - name: RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERDEAD
+          value: "120"
+        - name: RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_SLEEP
+          value: "10"
+        - name: RUNDECK_STORAGE_CONVERTER_1_CONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-storage-converter
+              key: masterpassword
+        - name: RUNDECK_CONFIG_STORAGE_CONVERTER_1_CONFIG_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-storage-converter
+              key: masterpassword
+        ports:
+        - containerPort: 4440
+        livenessProbe:
+          # an http probe
+          httpGet:
+            path: /
+            port: 4440
+            scheme: HTTP
+          initialDelaySeconds: 500
+          periodSeconds: 120
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 4440
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 5
+      volumes:
+      - name: license
+        secret:
+          secretName: rundeckpro-license
+          items:
+          - key: rundeckpro-license.key
+            path: rundeckpro-license.key
+      - name: acl
+        secret:
+          secretName: rundeckpro-admin-acl
+          items:
+          - key: admin-role.aclpolicy
+            path: admin-role.aclpolicy

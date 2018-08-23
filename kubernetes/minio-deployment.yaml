@@ -1,0 +1,98 @@
+
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  # This name uniquely identifies the Deployment
+  name: minio
+spec:
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        # Label is used as selector in the service.
+        app: minio
+    spec:
+      # Refer to the PVC created earlier
+      volumes:
+      - name: storage
+        persistentVolumeClaim:
+          # Name of the PVC created earlier
+          claimName: minio-pv-claim
+      containers:
+      - name: minio
+        # Pulls the default Minio image from Docker Hub
+        image: minio/minio:latest
+        args:
+        - server
+        - /data
+        env:
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awskey
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awssecret
+        ports:
+        - containerPort: 9000
+          hostPort: 9000
+        # Mount the volume into the pod
+        volumeMounts:
+        - name: storage # must match the volume name, above
+          mountPath: "/data"
+
+
+---      
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 9000
+      targetPort: 9000
+      protocol: TCP
+  selector:
+    app: minio
+
+
+---
+# Create rundeck bucket
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-create-bucket
+spec:
+  completions: 1
+  template:
+    metadata:
+      name: minio-create-bucket
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: minio-bucket
+        image: minio/mc
+        env:
+        - name: MINIO_URL
+          value: "http://minio.default.svc.cluster.local:9000"
+        - name: MINIO_ACCESS_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awskey
+        - name: MINIO_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: rundeckpro-log-storage
+              key: awssecret
+        - name: MINIO_BUCKET
+          value: "rundeck"
+        command: ["/bin/sh","-c","sleep 30 && mc config host add miniorundeck $MINIO_URL $MINIO_ACCESS_KEY $MINIO_SECRET_KEY  && mc mb miniorundeck/$MINIO_BUCKET --ignore-existing"]
+
