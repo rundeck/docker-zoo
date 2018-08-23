@@ -6,6 +6,7 @@ services:
         image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
         links:
           - ldap
+        tty: true
         environment:
             RUNDECK_JAAS_MODULES_0: JettyCombinedLdapLoginModule
             RUNDECK_JAAS_LDAP_PROVIDERURL: ldap://ldap:389
@@ -13,6 +14,8 @@ services:
             RUNDECK_JAAS_LDAP_BINDPASSWORD: AdminPass123
             RUNDECK_JAAS_LDAP_USERBASEDN: ou=users,dc=rdtest,dc=com
             RUNDECK_JAAS_LDAP_ROLEBASEDN: ou=roles,dc=rdtest,dc=com
+        volumes:
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
     ldap:

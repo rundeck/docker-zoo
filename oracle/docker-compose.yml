@@ -13,6 +13,7 @@ services:
             RUNDECK_DATABASE_URL: jdbc:oracle:thin:@oracle:1521/orclpdb1.localdomain
         volumes:
           - ./lib:/home/rundeck/server/lib
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
     oracle:
