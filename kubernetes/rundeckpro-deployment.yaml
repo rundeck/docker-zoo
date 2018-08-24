@@ -51,8 +51,6 @@ spec:
             secretKeyRef:
               name: mysql-rundeckuser
               key: password
-        - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE
-          value: "com.rundeck.rundeckpro.amazon-s3"
         - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_NAME
           value: "com.rundeck.rundeckpro.amazon-s3"
         - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET
