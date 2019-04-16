@@ -36,12 +36,12 @@ and will call this out in the instructions. For all others it can be used to
 changed the Rundeck docker image and other various defaults.
 
 
-### Rundeck Pro images
+### Rundeck Enterpise (fka Pro) images
 For each exhibit copy `.env.dist` to `.env` and uncomment the
 **pro** section. Provide the desired image and license file location:
 ```bash
 RUNDECK_IMAGE=rundeckpro/team:SNAPSHOT
-RUNDECK_LICENSE_FILE=/home/protip/rundeck-licesnse.key
+RUNDECK_LICENSE_FILE=/home/protip/rundeck-license.key
 ```
 
 ### Updating/Changing Images
