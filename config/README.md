@@ -1,5 +1,5 @@
-Configurations Exhibit
-=============
+Configuration Exhibit
+=====================
 This exhibit demonstrates how to extend the configuration with settings
 not included in the base Rundeck docker images.
 
