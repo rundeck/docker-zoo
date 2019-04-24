@@ -13,6 +13,9 @@ as well as a reference and starting place for your own deployments.
 * [ldap](./ldap)
 * [ldap-combined](./ldap-combined)
 
+### Extending Configuration 
+* [config](./config)
+
 ### External Database Config
 * [mysql](./mysql)
 * [oracle](./oracle)
@@ -22,6 +25,7 @@ as well as a reference and starting place for your own deployments.
 
 ### Plugin Bundling
 * [cloud](./cloud)
+* [config](./config)
 
 ### Reverse Proxy
 * [cloud](./cloud)

@@ -1,0 +1,4 @@
+[[template]]
+    src         = "${REMCO_TEMPLATE_DIR}/plugin-http-tours-framework.properties"
+    dst         = "${REMCO_TMP_DIR}/framework/plugin-http-tours-framework.properties"
+    mode        = "0644"

@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+    rundeck:
+        build: 
+          context: ./
+          args:
+            RUNDECK_IMAGE: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
+        environment:
+          RUNDECK_TOUR_ENABLE: 'true'
+          RUNDECK_TOUR_ENDPOINT: https://s3.amazonaws.com/tours.rundeck.com/prod
+        tty: true
+        volumes:
+          - data:/home/rundeck/server/data
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+        ports:
+          - 4440:4440
+
+volumes:
+    data:
