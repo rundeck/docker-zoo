@@ -97,8 +97,12 @@ kubectl apply -f rundeckpro-deployment.yaml
 
 ```
 
-kubectl delete deployment rundeckpro
-kubectl delete service rundeckpro
+kubectl delete deployment,service rundeckpro
 kubectl delete ingress rudeckpro-nginx
+kubectl delete deployment,service mysql 
+kubectl delete deployment,service minio 
+kubectl delete job minio-create-bucket 
+
+
 
 ```
