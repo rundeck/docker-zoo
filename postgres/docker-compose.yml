@@ -1,0 +1,28 @@
+version: '3'
+
+services:
+    rundeck:
+        image: rundeck/rundeck:SNAPSHOT
+        links:
+          - postgres
+        environment:
+            RUNDECK_DATABASE_DRIVER: org.postgresql.Driver
+            RUNDECK_DATABASE_USERNAME: rundeck
+            RUNDECK_DATABASE_PASSWORD: rundeck
+            RUNDECK_DATABASE_URL: jdbc:postgresql://postgres/rundeck?autoReconnect=true&useSSL=false
+        volumes:
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+        ports:
+          - 4440:4440
+    postgres:
+        image: postgres
+        expose:
+          - 3306
+        environment:
+          - POSTGRES_USER=rundeck
+          - POSTGRES_PASSWORD=rundeck
+        volumes:
+          - dbdata:/var/lib/postgresql/data
+
+volumes:
+    dbdata:
