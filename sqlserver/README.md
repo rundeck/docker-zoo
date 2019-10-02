@@ -1,7 +1,7 @@
-PostgreSQL Exhibit
+MSSQL Server Exhibit
 =============
 
-Demonstrates configuring Rundeck to use PostgreSQL as an external database.
+Demonstrates configuring Rundeck to use MSSQL Server as an external database.
 
 
 ### Startup
