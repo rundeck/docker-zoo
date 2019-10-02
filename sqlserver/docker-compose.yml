@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+    rundeck:
+        image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
+        links:
+          - sqlserver
+        environment:
+            RUNDECK_DATABASE_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
+            RUNDECK_DATABASE_USERNAME: sa
+            RUNDECK_DATABASE_PASSWORD: RundeckPassw0rd
+            RUNDECK_DATABASE_URL: jdbc:sqlserver://sqlserver;DatabaseName=rundeck;autoReconnect=true;useSSL=false
+            RUNDECK_DATABASE_DIALECT: org.hibernate.dialect.SQLServer2012Dialect
+        volumes:
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+        ports:
+          - 4440:4440
+    sqlserver:
+        build:
+          context: ./sqlserver
+        expose:
+          - 1433
+        environment:
+          - ACCEPT_EULA=Y
+          - MSSQL_PID=Express
+          - SA_PASSWORD=RundeckPassw0rd
+        command: /bin/bash ./entrypoint.sh

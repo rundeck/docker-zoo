@@ -20,6 +20,7 @@ as well as a reference and starting place for your own deployments.
 * [mysql](./mysql)
 * [oracle](./oracle)
 * [postgres](./postgres)
+* [sqlserver](./sqlserver)
 
 ### Kubernetes
 * `Pro` [kubernetes](./kubernetes)

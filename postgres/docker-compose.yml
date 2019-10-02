@@ -2,7 +2,7 @@ version: '3'
 
 services:
     rundeck:
-        image: rundeck/rundeck:SNAPSHOT
+        image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
         links:
           - postgres
         environment:
