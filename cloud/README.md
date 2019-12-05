@@ -20,7 +20,7 @@ Rundeck to respect the standard `X-Forwarded-*` headers.
 ```
 mkdir libext
 cd libext
-wget https://github.com/rundeck-plugins/rundeck-s3-log-plugin/releases/download/v1.0.5/rundeck-s3-log-plugin-1.0.5.jar
+wget https://github.com/rundeck-plugins/rundeck-s3-log-plugin/releases/download/v1.0.8/rundeck-s3-log-plugin-1.0.8.jar
 ```
 
 **Populate `.env` file**
