@@ -11,4 +11,4 @@ The `build` user exists in LDAP, and the `admin` user is in the `realm.propertie
 
 **Property File User:**
 `username: admin`
-`username: admin`
+`password: admin`
