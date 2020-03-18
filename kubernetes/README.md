@@ -9,14 +9,13 @@ Create a master password for the storage converter
 ```
 echo -n 'masterpassword123.' > ./masterpassword
 kubectl create secret generic rundeckpro-storage-converter --from-file=./masterpassword
-
 ```
 
 ## Create Storage Access Key
 
 Create the AWS access key/secret to access the log storage (S3 or any similar storage based on S3, like minio)
-```
 
+```
 echo -n 'minio123' > ./awssecret
 kubectl create secret generic rundeckpro-log-storage --from-file=./awskey --from-file=./awssecret
 ```
@@ -29,7 +28,6 @@ Create database password as secret
 echo -n 'rundeck123.' > ./password
 kubectl create secret generic mysql-rundeckuser --from-file=./password
 ```
-
 
 ## Create License Key Secret
 
@@ -68,41 +66,32 @@ We use on this example an Nginx ingress controller, which allows us to set the s
 We are using this ingress controller: https://kubernetes.github.io/ingress-nginx/ 
 You will need to install it in order to make this example works (see https://kubernetes.github.io/ingress-nginx/deploy/):
 
-
 * The following Mandatory Command is required.
-
 
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-
 ```
 
 * Provider Specific Steps for nginx ingress (see https://kubernetes.github.io/ingress-nginx/deploy/)
 
-For example for a local docker mac environment: 
+For example for a local docker mac environment:
+
 ```
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud-generic.yaml
-
 ```
-* create rundeckpro deployment
 
+* create rundeckpro deployment
 
 ```
 kubectl apply -f rundeckpro-deployment.yaml
-
 ```
-
 
 ## Uninstall 
 
 ```
-
 kubectl delete deployment,service rundeckpro
 kubectl delete ingress rudeckpro-nginx
 kubectl delete deployment,service mysql 
 kubectl delete deployment,service minio 
 kubectl delete job minio-create-bucket 
-
-
-
 ```
