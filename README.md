@@ -46,7 +46,7 @@ changed the Rundeck docker image and other various defaults.
 For each exhibit copy `.env.dist` to `.env` and uncomment the
 **pro** section. Provide the desired image and license file location:
 ```bash
-RUNDECK_IMAGE=rundeckpro/team:SNAPSHOT
+RUNDECK_IMAGE=rundeckpro/enterprise:SNAPSHOT
 RUNDECK_LICENSE_FILE=/home/protip/rundeck-license.key
 ```
 
