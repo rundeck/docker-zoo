@@ -58,7 +58,7 @@ spec:
     spec:
       containers:
       - name: rundeck
-        image: khudgins/rundeck4kube:latest
+        image: rundeckpro/enterprise:SNAPSHOT
         volumeMounts:
           - mountPath: /home/rundeck/etc/rundeckpro-license.key
             name: license
