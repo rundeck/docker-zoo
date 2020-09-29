@@ -12,13 +12,18 @@ spec:
   type: LoadBalancer
 
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: mysql
+  labels:
+    app: mysql
 spec:
   strategy:
     type: Recreate
+  selector:
+    matchLabels:
+      app: mysql
   template:
     metadata:
       labels:
