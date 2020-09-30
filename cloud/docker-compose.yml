@@ -12,7 +12,7 @@ services:
         environment:
             RUNDECK_GRAILS_URL: http://localhost
             RUNDECK_SERVER_FORWARDED: 'true'
-            RUNDECK_DATABASE_DRIVER: com.mysql.jdbc.Driver
+            RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false

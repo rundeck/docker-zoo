@@ -6,7 +6,7 @@ services:
         links:
           - mysql
         environment:
-            RUNDECK_DATABASE_DRIVER: com.mysql.jdbc.Driver
+            RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false

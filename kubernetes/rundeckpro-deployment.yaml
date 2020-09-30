@@ -65,7 +65,7 @@ spec:
         - name: RUNDECK_GRAILS_URL
           value: "http://localhost"
         - name: RUNDECK_DATABASE_DRIVER
-          value: "com.mysql.jdbc.Driver"
+          value: "org.mariadb.jdbc.Driver"
         - name: RUNDECK_DATABASE_URL
           value: "jdbc:mysql://mysql.default.svc.cluster.local:3306/rundeckdb?autoReconnect=true&useSSL=false"
         - name: RUNDECK_DATABASE_USERNAME
