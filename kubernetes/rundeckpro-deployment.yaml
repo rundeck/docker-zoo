@@ -1,4 +1,4 @@
-apiVersion: extensions/v1beta1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: rudeckpro-nginx
@@ -39,13 +39,18 @@ spec:
 
 ---
 
-apiVersion: extensions/v1beta1
+apiVersion: apps/v1 
 kind: Deployment
 metadata:
   name: rundeckpro
   namespace: default
+  labels:
+    app: rundeckpro
 spec:
   replicas: 2
+  selector:
+    matchLabels:
+      app: rundeckpro
   template:
     metadata:
       labels:
@@ -61,6 +66,9 @@ spec:
           - mountPath: /home/rundeck/etc/admin-role.aclpolicy
             name: acl
             subPath: admin-role.aclpolicy
+          - mountPath: /home/rundeck/.kube/config
+            name: kubeconfig
+            subPath: config
         env:
         - name: RUNDECK_GRAILS_URL
           value: "http://localhost"
@@ -109,6 +117,8 @@ spec:
             secretKeyRef:
               name: rundeckpro-storage-converter
               key: masterpassword
+        - name: RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ENABLED
+          value: "false"
         ports:
         - containerPort: 4440
         livenessProbe:
@@ -139,3 +149,10 @@ spec:
           items:
           - key: admin-role.aclpolicy
             path: admin-role.aclpolicy
+      - name: kubeconfig
+        secret:
+          secretName: kubeconfig
+          items:
+          - key: config
+            path: config
+            

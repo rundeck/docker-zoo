@@ -119,4 +119,3 @@ kubectl delete job minio-create-bucket
 ```
 
 Note: These delete commands leave the persistent volumes and secrets in place so you can start up the environment again rather easily.
-
