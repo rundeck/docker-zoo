@@ -17,7 +17,7 @@ services:
     postgres:
         image: postgres
         expose:
-          - 3306
+          - 5432
         environment:
           - POSTGRES_USER=rundeck
           - POSTGRES_PASSWORD=rundeck
