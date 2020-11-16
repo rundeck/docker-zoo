@@ -19,6 +19,7 @@ services:
         expose:
           - 5432
         environment:
+          - POSTGRES_DB=rundeck
           - POSTGRES_USER=rundeck
           - POSTGRES_PASSWORD=rundeck
         volumes:
