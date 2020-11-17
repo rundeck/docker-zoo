@@ -42,7 +42,7 @@ kubectl create secret generic mysql-rundeckuser --from-file=./password
 
 ### Create License Key Secret
 
-Add the Rundeck Enetprise license key as a Kubernetes secret. You will need a license key from your Rundeck account team for this step. Copy that license key into the data subdirectory of this path as ./data/rundeckpro-license.key
+Add the Rundeck Enterprise license key as a Kubernetes secret. You will need a license key from your Rundeck account team for this step. Copy that license key into the data subdirectory of this path as ./data/rundeckpro-license.key
 
 ```
 kubectl create secret generic rundeckpro-license --from-file=./data/rundeckpro-license.key
