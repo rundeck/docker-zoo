@@ -1,6 +1,6 @@
-# Deploy Rundeck PRO on Kubernetes
+# Deploy Rundeck Enterprise on Kubernetes
 
-This example deploys a 2-node Rundeck PRO cluster with Mysql DB and Minio as logstorage.
+This example deploys a 2-node Rundeck Enterprise cluster with Mysql DB and Minio as logstorage.
 
 This is a workable architecture that can easily be used as a basis for deploying a fully HA production Rundeck cluster.
 
@@ -42,7 +42,7 @@ kubectl create secret generic mysql-rundeckuser --from-file=./password
 
 ### Create License Key Secret
 
-Add the Rundeck PRO license key as a Kubernetes secret. You will need a license key from your Rundeck account team for this step. Copy that license key into the data subdirectory of this path as ./data/rundeckpro-license.key
+Add the Rundeck Enetprise license key as a Kubernetes secret. You will need a license key from your Rundeck account team for this step. Copy that license key into the data subdirectory of this path as ./data/rundeckpro-license.key
 
 ```
 kubectl create secret generic rundeckpro-license --from-file=./data/rundeckpro-license.key
@@ -103,8 +103,6 @@ The required Rundeck configuration options are already set in this file. Please 
 kubectl apply -f rundeckpro-deployment.yaml
 
 ```
-
-
 
 
 ## Uninstall
