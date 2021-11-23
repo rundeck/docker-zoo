@@ -71,29 +71,23 @@ kubectl apply -f mysql-deployment.yaml
 
 ### Ingress Controller
 
-For this example, we are using Nginx as an ingress controller, which allows us to use the sticky sessions. Sticky sessions is required for clustered Rundeck.
-
-We are using this ingress controller: https://kubernetes.github.io/ingress-nginx/
-You will need to install it in order to make this example works (see https://kubernetes.github.io/ingress-nginx/deploy/):
-
-
-* First, install the common Nginx components. This is mandatory for any Nginx ingress on Kubernetes.
-
-```
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/mandatory.yaml
-
-```
-
-* Next, run the provider specific steps for Nginx ingress (see https://kubernetes.github.io/ingress-nginx/deploy/)
+For this example, we are using Nginx as an ingress controller, which allows us to use the sticky sessions. Sticky sessions is required for clustered Rundeck. You will need to install it in order to make this example works (see https://github.com/kubernetes/ingress-nginx):
 
 On a local Docker Desktop environment:
 
 ```
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/cloud-generic.yaml
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 
 ```
 
-If you are running this in a different environment, please refer to the documentation linked above.
+* If you are running this in a cloud, bare-metal, or other environment, please refer to the documentation link and choose your provider specific setup for Nginx ingress .(see https://kubernetes.github.io/ingress-nginx/deploy/)
+
+After the Ingress is all setup, run the folling to wait until is ready to process requests:
+
+```
+kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
+
+```
 
 ### Create Rundeckpro deployment
 
@@ -104,6 +98,13 @@ kubectl apply -f rundeckpro-deployment.yaml
 
 ```
 
+### Access Rundeck WebUI 
+
+You will need to port-forward the Rundeck service to access and interact with WebUI running in your Kubernetes cluster from your localhost. 
+
+```
+kubectl port-forward service/rundeckpro 8080:8080
+```
 
 ## Uninstall
 
