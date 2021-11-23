@@ -1,25 +1,25 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: rudeckpro-nginx
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    #for sticky sessions
-    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingres.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
     nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
     nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
-
 spec:
+  ingressClassName: nginx
   rules:
   - host: localhost
     http:
       paths:
-      - backend:
-          serviceName: rundeckpro
-          servicePort: 8080
-        path: /
-
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: rundeckpro
+            port:
+              number: 8080
 ---
 
 apiVersion: v1
@@ -39,7 +39,7 @@ spec:
 
 ---
 
-apiVersion: apps/v1 
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: rundeckpro
@@ -47,7 +47,7 @@ metadata:
   labels:
     app: rundeckpro
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: rundeckpro
@@ -71,7 +71,7 @@ spec:
             subPath: config
         env:
         - name: RUNDECK_GRAILS_URL
-          value: "http://localhost"
+          value: "http://localhost:8080"
         - name: RUNDECK_DATABASE_DRIVER
           value: "org.mariadb.jdbc.Driver"
         - name: RUNDECK_DATABASE_URL
@@ -155,4 +155,3 @@ spec:
           items:
           - key: config
             path: config
-            
