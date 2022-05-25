@@ -5,7 +5,7 @@ Oracle XE Exhibit
 
 ## Download Oracle JDBC Driver
 
-[Download the Oracle JDBC driver](https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html) and place in `lib/` .
+[Download the Oracle JDBC driver "ojdbc8.jar"](https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html) and place in `lib/` .
 
 ```
 VERS=21.5.0.0
