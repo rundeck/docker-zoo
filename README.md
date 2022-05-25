@@ -18,7 +18,7 @@ as well as a reference and starting place for your own deployments.
 
 ### External Database Config
 * [mysql](./mysql)
-* [oracle](./oracle)
+* [oraclexe](./oraclexe)
 * [postgres](./postgres)
 * [sqlserver](./sqlserver)
 
