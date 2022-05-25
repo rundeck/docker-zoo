@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+    rundeck:
+        image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
+        links:
+          - oracle
+        environment:
+            RUNDECK_GRAILS_URL: http://localhost:4440
+            RUNDECK_DATABASE_DRIVER: oracle.jdbc.OracleDriver
+            RUNDECK_DATABASE_DIALECT: org.rundeck.hibernate.RundeckOracleDialect
+            RUNDECK_DATABASE_USERNAME: system
+            RUNDECK_DATABASE_PASSWORD: mypassword123
+            RUNDECK_DATABASE_URL: jdbc:oracle:thin:@oracle:1521:XE
+            RUNDECK_DATABASE_VALIDATIONQUERY: SELECT 1 FROM DUAL
+        volumes:
+          - ./lib:/home/rundeck/server/lib
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+        ports:
+          - 4440:4440
+        depends_on:
+          - oracle
+    oracle:
+        image: container-registry.oracle.com/database/express:21.3.0-xe
+        environment:
+            ORACLE_PWD: mypassword123
+        expose:
+          - 1521
+        ports:
+          - 1521:1521
+        volumes:
+          - dbdata:/opt/oracle/oradata
+
+volumes:
+    dbdata:
