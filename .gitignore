@@ -1,3 +1,4 @@
 .env
 oracle/lib/ojdbc8.jar
 .idea
+.DS_Store
