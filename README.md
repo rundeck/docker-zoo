@@ -18,7 +18,6 @@ as well as a reference and starting place for your own deployments.
 
 ### External Database Config
 * [mysql](./mysql)
-* [oracle](./oracle)
 * [postgres](./postgres)
 * [sqlserver](./sqlserver)
 
@@ -47,7 +46,7 @@ For each exhibit copy `.env.dist` to `.env` and uncomment the
 **pro** section. Provide the desired image and license file location:
 ```bash
 RUNDECK_IMAGE=rundeckpro/enterprise:SNAPSHOT
-RUNDECK_LICENSE_FILE=/home/protip/rundeck-license.key
+RUNDECK_LICENSE_FILE=/path/to/rundeck-license.key
 ```
 
 ### Updating/Changing Images
