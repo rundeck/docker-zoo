@@ -6,6 +6,7 @@ services:
         links:
           - sqlserver
         environment:
+            RUNDECK_GRAILS_URL: http://localhost:4440
             RUNDECK_DATABASE_DRIVER: com.microsoft.sqlserver.jdbc.SQLServerDriver
             RUNDECK_DATABASE_USERNAME: sa
             RUNDECK_DATABASE_PASSWORD: RundeckPassw0rd
@@ -15,11 +16,15 @@ services:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
+        depends_on:
+          - sqlserver
     sqlserver:
         build:
           context: ./sqlserver
         expose:
           - 1433
+        ports:
+          - 1433:1433
         environment:
           - ACCEPT_EULA=Y
           - MSSQL_PID=Express
