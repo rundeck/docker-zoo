@@ -1,0 +1,71 @@
+version: '3.9'
+
+services:
+    rundeck:
+#        image: rundeckpro/enterprise:SNAPSHOT
+        image: rundeck/rundeck:SNAPSHOT
+        networks: 
+          - rundeck-network
+        environment:
+            RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
+            RUNDECK_DATABASE_USERNAME: rundeck
+            RUNDECK_DATABASE_PASSWORD: rundeck
+            RUNDECK_DATABASE_URL: jdbc:mysql://rddbnode1/rundeck?autoReconnect=true&useSSL=false
+            RUNDECK_GRAILS_URL: localhost:4440
+        volumes:
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+        ports:
+          - 4440:4440
+    rddbnode1:
+        image: percona/percona-xtradb-cluster:8.0
+        networks: 
+          - rundeck-network
+        ports:
+          - 3306:3306
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=rundeck
+          - MYSQL_USER=rundeck
+          - MYSQL_PASSWORD=rundeck
+          - CLUSTER_NAME=rundeck-cluster
+        volumes:
+          - ${PWD}/certs:/cert
+          - ${PWD}/config:/etc/percona-xtradb-cluster.conf.d
+
+    rddbnode2:
+        image: percona/percona-xtradb-cluster:8.0
+        networks: 
+          - rundeck-network
+        ports:
+          - 3307:3306
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=rundeck
+          - MYSQL_USER=rundeck
+          - MYSQL_PASSWORD=rundeck
+          - CLUSTER_NAME=rundeck-cluster
+          - CLUSTER_JOIN=rddbnode1
+        volumes:
+          - ${PWD}/certs:/cert
+          - ${PWD}/config:/etc/percona-xtradb-cluster.conf.d
+
+    rddbnode3:
+        image: percona/percona-xtradb-cluster:8.0
+        networks: 
+          - rundeck-network
+        ports:
+          - 3308:3306
+        environment:
+          - MYSQL_ROOT_PASSWORD=root
+          - MYSQL_DATABASE=rundeck
+          - MYSQL_USER=rundeck
+          - MYSQL_PASSWORD=rundeck
+          - CLUSTER_NAME=rundeck-cluster
+          - CLUSTER_JOIN=rddbnode1
+        volumes:
+          - ${PWD}/certs:/cert
+          - ${PWD}/config:/etc/percona-xtradb-cluster.conf.d
+
+networks:
+  rundeck-network:
+    name: rundeck-network
