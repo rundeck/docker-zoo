@@ -17,6 +17,22 @@ The first time you need to run the `rddbnode1` container first to bootstrap the 
 ```
 docker compose up rddbnode1 -d
 ```
+
+- Log into the created mysql node and temporarily disable cluster checks.
+```mysql
+mysql> SET GLOBAL pxc_strict_mode=PERMISSIVE;
+```
+
+Run the rundeck war in dbmigration mode so it creates the database schema:
+```shell
+java -jar rundeck.war -m
+```
+
+Enable strict mode again on the database cluster.
+```mysql
+mysql> SET GLOBAL pxc_strict_mode=ENFORCING;
+```
+
 Then start the other database nodes:
 ```
 docker compose up rddbnode2 rddbnode3 -d

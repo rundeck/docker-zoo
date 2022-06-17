@@ -1,9 +1,20 @@
 version: '3.9'
 
 services:
+    rdbootstrap:
+        image: ${RUNDECK_IMAGE:-rundeckpro/enterprise:SNAPSHOT}
+        restart: "no"
+        
+        networks: 
+          - rundeck-network
+        environment:
+            RUNDECK_EXEC_CMD: java -jar rundeck.war -m
+            RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
+            RUNDECK_DATABASE_USERNAME: rundeck
+            RUNDECK_DATABASE_PASSWORD: rundeck
+            RUNDECK_DATABASE_URL: jdbc:mysql://rddbnode1/rundeck?autoReconnect=true&useSSL=false
     rundeck:
-#        image: rundeckpro/enterprise:SNAPSHOT
-        image: rundeck/rundeck:SNAPSHOT
+        image: ${RUNDECK_IMAGE:-rundeckpro/enterprise:SNAPSHOT}
         networks: 
           - rundeck-network
         environment:
@@ -11,7 +22,7 @@ services:
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://rddbnode1/rundeck?autoReconnect=true&useSSL=false
-            RUNDECK_GRAILS_URL: localhost:4440
+            RUNDECK_GRAILS_URL: "http://localhost:4440"
         volumes:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:

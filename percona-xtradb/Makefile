@@ -1,4 +1,4 @@
-RUNDECK_VERSION ?= 4.1.0
+﻿RUNDECK_VERSION ?= 4.1.0
 RUNDECK_IMAGE ?= rundeckpro/enterprise
 PERCONA_IMAGE ?= percona/percona-xtradb-cluster:8.0
 
@@ -10,17 +10,23 @@ certs:
 
 bootstrap: certs
 	docker compose up rddbnode1 -d
-	echo "wait 30 seconds for main to start..." && sleep 30
-	echo "you may now start..."
+	echo "wait 30 seconds for main db to start..." && sleep 30
+	echo "Disabling cluster strict mode..."
+	docker compose exec rddbnode1 mysql -hlocalhost -uroot -proot rundeck -e "SET GLOBAL pxc_strict_mode=PERMISSIVE;"
+	docker compose run -i --rm rdbootstrap
+	echo "wait 5 seconds before enforcing strict mode again" && sleep 5
+	docker compose exec rddbnode1 mysql -hlocalhost -uroot -proot rundeck -e "SET GLOBAL pxc_strict_mode=ENFORCING;"
+	docker compose up rddbnode2 -d
+	docker compose up rddbnode3 -d
 
-dbstart: bootstrap
+dbstart:
 	docker compose up rddbnode1 rddbnode2 rddbnode3 -d
 
-rdstart:
+start:
 	docker compose up rundeck -d
 
 destroy:
-	docker-compose down -v
+	docker compose down -v
 	rm -rf $(PWD)/certs
 
 .PHONY: default
