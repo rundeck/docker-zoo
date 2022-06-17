@@ -13,7 +13,7 @@ bootstrap: certs
 	echo "wait 30 seconds for main to start..." && sleep 30
 	echo "you may now start..."
 
-dbstart:
+dbstart: bootstrap
 	docker compose up rddbnode1 rddbnode2 rddbnode3 -d
 
 rdstart:
