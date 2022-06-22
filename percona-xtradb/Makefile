@@ -10,7 +10,7 @@ certs:
 
 bootstrap: certs
 	docker compose up rddbnode1 -d
-	echo "wait 30 seconds for main db to start..." && sleep 30
+	echo "wait 35 seconds for main db to start..." && sleep 35
 	echo "Disabling cluster strict mode..."
 	docker compose exec rddbnode1 mysql -hlocalhost -uroot -proot rundeck -e "SET GLOBAL pxc_strict_mode=PERMISSIVE;"
 	docker compose run -i --rm rdbootstrap

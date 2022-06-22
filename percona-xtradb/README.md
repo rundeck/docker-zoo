@@ -13,6 +13,9 @@ $ make certs
 A `certs`directory with the generated certs will be created.
 
 #### First-time Bootstrap of the DB cluster
+
+***TIP**: `make bootstrap` will run this procedure automatically. This command will execute the following:*
+
 The first time you need to run the `rddbnode1` container first to bootstrap the cluster:
 ```
 docker compose up rddbnode1 -d
@@ -38,12 +41,13 @@ Then start the other database nodes:
 docker compose up rddbnode2 rddbnode3 -d
 ```
 
-### Startup
-```
-docker-compose up -d
-```
 
-### Teardown
-```
-docker-compose down -v
-```
+
+### Startup
+Run 
+`make start`
+or
+`docker-compose up rundeck -d`
+
+### Teardown everything (including db)
+`make destroy` or `docker-compose down -v`
