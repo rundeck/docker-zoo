@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: rudeckpro-nginx
+  name: rundeckpro-nginx
   annotations:
     nginx.ingres.kubernetes.io/affinity: "cookie"
     nginx.ingress.kubernetes.io/session-cookie-name: "route"
