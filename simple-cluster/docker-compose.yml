@@ -1,0 +1,90 @@
+
+# We fix the project name so DNS names are deterministic
+# This in order to use nginx LB in full, instead of docker's dns round-robin strategy.
+name: rundeck-cluster
+
+services:
+  nginx:
+    image: nginx
+    depends_on:
+      rundeck:
+        condition: service_healthy
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - 80:80
+
+  # slim rundeck container to run database setup.
+  # We do this first to prevent collisions between the two nodes when doing the first setup.
+  rundeck-migration:
+    image: ${RUNDECK_IMAGE:-rundeckpro/enterprise:SNAPSHOT}
+    links:
+      - dbase
+    environment:
+      RUNDECK_EXEC_CMD: "java -jar rundeck.war -m"
+      RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
+      RUNDECK_DATABASE_USERNAME: rundeck
+      RUNDECK_DATABASE_PASSWORD: rundeck
+      RUNDECK_DATABASE_URL: jdbc:mysql://dbase/rundeck?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+
+
+  # main cluster
+  rundeck:
+    deploy:
+      replicas: 2 # If this is changed, remember to adjust nginx configuration at nginx.conf
+    image: rundeck-node
+    build:
+      context: rundeck-node
+      args:
+        RUNDECK_IMAGE: ${RUNDECK_IMAGE:-rundeckpro/enterprise:SNAPSHOT}
+    links:
+      - rundeck-migration
+      - dbase
+    depends_on:
+      rundeck-migration:
+        condition: service_completed_successfully
+    environment:
+      RUNDECK_GRAILS_URL: http://localhost
+      RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
+      RUNDECK_DATABASE_USERNAME: rundeck
+      RUNDECK_DATABASE_PASSWORD: rundeck
+      RUNDECK_DATABASE_URL: jdbc:mysql://dbase/rundeck?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
+      RUNDECK_SECURITY_DBLOGIN_ENABLED: 'true'
+      RUNDECK_SECURITY_DBLOGIN_CREATEADMINUSERANDROLES: 'true'
+      RUNDECK_SECURITY_DBLOGIN_ADMINUSERNAME: admin
+      RUNDECK_SECURITY_DBLOGIN_ADMINPASSWORD: admin
+      RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ENABLED: 'false'
+      RUNDECK_FEATURE_ENTERPRISEACL_ENABLED: 'false'
+      RUNDECK_FEATURE_ENTERPRISEACLTRANSFER_ENABLED: 'false'
+      RUNDECK_SERVER_ADDRESS: 0.0.0.0
+      RUNDECK_GUI_STARTPAGE: jobs
+    healthcheck:
+      test: "curl -f http://localhost:4440"
+      interval: 5s
+      timeout: 10s
+      retries: 50
+      start_period: 180s
+      start_interval: 10s
+    ports:
+      - 4440
+#    expose:
+#      - 4440
+    volumes:
+      - logdata:/home/rundeck/var/logs:rw
+      - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+
+  dbase:
+    image: mysql:8
+    ports:
+      - 3306:3306
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: rundeck
+      MYSQL_USER: rundeck
+      MYSQL_PASSWORD: rundeck
+    volumes:
+      - dbdata_mysql:/var/lib/mysql
+
+volumes:
+  logdata:
+  dbdata_mysql:
