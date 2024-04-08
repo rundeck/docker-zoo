@@ -10,7 +10,7 @@ services:
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:postgresql://postgres/rundeck?autoReconnect=true&useSSL=false&allowPublicKeyRetrieval=true
-            RUNDECK_GRAILS_URL: localhost:4440
+            RUNDECK_GRAILS_URL: http://localhost:4440
         volumes:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
