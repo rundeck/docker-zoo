@@ -14,7 +14,6 @@ services:
             RUNDECK_GRAILS_URL: localhost:4440
             RUNDECK_SERVER_ADDRESS: 0.0.0.0
         volumes:
-          # Change the path to the license key file
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
