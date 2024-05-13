@@ -11,8 +11,7 @@ services:
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false
-            RUNDECK_GRAILS_URL: localhost:4440
-            RUNDECK_SERVER_ADDRESS: 0.0.0.0
+            RUNDECK_GRAILS_URL: http://localhost:4440
         volumes:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
