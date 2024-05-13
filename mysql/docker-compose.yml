@@ -2,7 +2,7 @@ version: '3'
 
 services:
     rundeck:
-        image: rundeckpro/enterprise:5.3.0-rc1-20240508
+        image: ${RUNDECK_IMAGE}
         links:
           - mysql
         environment:
@@ -15,7 +15,7 @@ services:
             RUNDECK_SERVER_ADDRESS: 0.0.0.0
         volumes:
           # Change the path to the license key file
-          - /Users/agrachtchouk/rundeck_dev/pagerduty.com-SUBSCRIBER-ENTERPRISE-agrachtchouk.key:/home/rundeck/etc/rundeckpro-license.key
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
     mysql:
