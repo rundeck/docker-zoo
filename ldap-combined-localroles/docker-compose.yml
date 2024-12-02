@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+    rundeck1:
+        hostname: rundeck1
+        image: ${RUNDECK_IMAGE:-rundeck/rundeck:SNAPSHOT}
+        links:
+          - ldap
+        tty: true
+        environment:
+            RUNDECK_JAAS_MODULES_0: JettyCombinedLdapLoginModule
+            RUNDECK_JAAS_LDAP_FLAG: requisite
+            RUNDECK_JAAS_LDAP_PROVIDERURL: ldap://ldap:389
+            RUNDECK_JAAS_LDAP_BINDDN: cn=admin,dc=rdtest,dc=com
+            RUNDECK_JAAS_LDAP_BINDPASSWORD: AdminPass123
+            RUNDECK_JAAS_LDAP_USERBASEDN: ou=users,dc=rdtest,dc=com
+            RUNDECK_JAAS_LDAP_ROLEBASEDN: ""
+            RUNDECK_JAAS_LDAP_STOREPASS: 'true'
+            RUNDECK_JAAS_MODULES_1: JettyRolePropertyFileLoginModule
+            RUNDECK_JAAS_FILE_FLAG: required
+            RUNDECK_JAAS_USEFIRSTPASS: 'true'
+            RUNDECK_JAAS_DEBUG: 'true'
+        volumes:
+          - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
+          - ./realm.properties:/home/rundeck/server/config/realm.properties
+        ports:
+          - 4440:4440
+    ldap:
+        hostname: ldap
+        image: osixia/openldap:1.2.1 
+        environment:
+          - LDAP_ORGANISATION=RD Test
+          - LDAP_DOMAIN=rdtest.com
+          - LDAP_ADMIN_PASSWORD=AdminPass123
+        volumes:
+          - ./ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom:rw
+        ports:
+          - "389:389"
+        command: --copy-service
