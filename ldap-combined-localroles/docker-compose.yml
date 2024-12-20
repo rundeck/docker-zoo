@@ -18,7 +18,7 @@ services:
             RUNDECK_JAAS_LDAP_STOREPASS: 'true'
             RUNDECK_JAAS_MODULES_1: JettyRolePropertyFileLoginModule
             RUNDECK_JAAS_FILE_FLAG: required
-            RUNDECK_JAAS_USEFIRSTPASS: 'true'
+            RUNDECK_JAAS_FILE_USEFIRSTPASS: 'true'
             RUNDECK_JAAS_DEBUG: 'true'
         volumes:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
