@@ -8,6 +8,7 @@ services:
           - ldap
         tty: true
         environment:
+            RUNDECK_GRAILS_URL: http://localhost:4440
             RUNDECK_JAAS_MODULES_0: JettyCombinedLdapLoginModule
             RUNDECK_JAAS_LDAP_FLAG: requisite
             RUNDECK_JAAS_LDAP_PROVIDERURL: ldap://ldap:389
