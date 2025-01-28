@@ -1,0 +1,11 @@
+name: rundeck-runner
+
+services:
+
+  runner:
+    env_file: .env
+    image: rundeckpro/runner:SNAPSHOT
+    tty: true
+
+volumes:
+  data:
