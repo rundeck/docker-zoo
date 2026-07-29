@@ -1,0 +1,78 @@
+# Monitoring / observability exhibit.
+#
+#   - Metrics: Prometheus scrapes Rundeck's native /monitoring/prometheus endpoint (Rundeck 6+).
+#   - Logs:    container stdout/stderr reach Loki via the Docker Loki logging driver
+#              (no OpenTelemetry Collector, no Promtail, no Docker-socket access).
+#   - Grafana: visualizes both, with the Prometheus and Loki datasources auto-provisioned.
+#
+# Prereq (once, on the host):
+#   docker plugin install grafana/loki-docker-driver:latest --alias loki --grant-all-permissions
+#
+# Bring up:  docker compose up -d
+# Grafana:   http://localhost:3000   (anonymous admin)
+# Rundeck:   http://localhost:4440   (admin/admin)
+
+name: rundeck-monitoring
+
+services:
+
+  rundeck:
+    image: ${RUNDECK_IMAGE:-rundeck/rundeck:6.0.1}
+    ports:
+      - "4440:4440"
+    environment:
+      RUNDECK_GRAILS_URL: "http://localhost:4440"
+      RUNDECK_SERVER_FORWARDED: "true"
+      RUNDECK_METRICS_ENABLED: "true"
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+        loki-retries: "5"
+        loki-batch-size: "400"
+        mode: "non-blocking"
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    logging:
+      driver: loki
+      options:
+        loki-url: "http://localhost:3100/loki/api/v1/push"
+        mode: "non-blocking"
+    depends_on:
+      loki:
+        condition: service_healthy
+
+  loki:
+    image: grafana/loki:3.0.0
+    command: -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O- http://localhost:3100/ready | grep -q ready || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+      - loki

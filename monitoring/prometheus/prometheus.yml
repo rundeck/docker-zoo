@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Rundeck exposes JVM/HTTP/scheduler metrics natively (Rundeck 6+) at /monitoring/prometheus.
+  - job_name: 'rundeck'
+    metrics_path: /monitoring/prometheus
+    static_configs:
+      - targets: ['rundeck:4440']
+        labels:
+          service: rundeck
+
+  # Prometheus scraping itself (handy sanity check).
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
