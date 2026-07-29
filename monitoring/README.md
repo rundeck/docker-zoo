@@ -64,6 +64,22 @@ In Grafana:
 - **Drilldown → Logs** (the "Logs Drilldown" app) lists services visually — enabled by
   `limits_config.volume_enabled: true` in `loki/loki-config.yml`.
 
+## Dashboards
+
+Two dashboards are auto-provisioned into the **Rundeck** folder in Grafana (via
+`grafana/provisioning/dashboards/dashboards.yml`, which loads the JSON files mounted at
+`/var/lib/grafana/dashboards`):
+
+- **Rundeck Overview** (`grafana/dashboards/Rundeck-Overview.json`) — JVM, HTTP, scheduler,
+  cache, and execution metrics from `/monitoring/prometheus`.
+- **Runner Dashboard** (`grafana/dashboards/Runner-Dashboard.json`) — the Runner operation and
+  report-delivery metrics produced by the JMX exporter mapping in `runner-agent/jmx-config.yml`.
+
+Both bind to the `prometheus` datasource. Some panels only populate when their source is present:
+the Runner dashboard needs a Runner scraped via `runner-agent/jmx-config.yml`, and a few Rundeck
+panels depend on business metrics that are exposed on certain Rundeck distributions — panels with
+no matching series simply render empty.
+
 ## Monitoring a Runner
 
 A Runner has no HTTP metrics endpoint; its metrics are JMX MBeans. Run the
