@@ -4,7 +4,8 @@ global:
 
 scrape_configs:
   # Rundeck exposes JVM/HTTP/scheduler metrics natively (Rundeck 6+) at /monitoring/prometheus.
-  - job_name: 'rundeck'
+  # Job name is prefixed "rundeck-" so it matches the Rundeck Overview dashboard's instance filter.
+  - job_name: 'rundeck-server'
     metrics_path: /monitoring/prometheus
     static_configs:
       - targets: ['rundeck:4440']
