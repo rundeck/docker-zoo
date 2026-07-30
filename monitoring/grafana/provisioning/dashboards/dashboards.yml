@@ -1,0 +1,11 @@
+apiVersion: 1
+
+providers:
+  - name: 'rundeck dashboards'
+    orgId: 1
+    folder: 'Rundeck'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards

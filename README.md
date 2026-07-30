@@ -25,6 +25,9 @@ as well as a reference and starting place for your own deployments.
 ### Kubernetes
 * `Pro` [kubernetes](./kubernetes)
 
+### Monitoring / Observability
+* [monitoring](./monitoring)
+
 ### Plugin Bundling
 * [cloud](./cloud)
 * [config](./config)

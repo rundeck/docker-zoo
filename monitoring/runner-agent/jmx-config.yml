@@ -1,0 +1,253 @@
+startDelaySeconds: 0
+ssl: false
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+
+# Maps Micrometer JMX bean names to Prometheus metrics so the Runner Grafana dashboard
+# works via jmx_prometheus_javaagent (:9404) — the Runner has no built-in metrics endpoint
+# of its own, so this mapping is the only source of runner_operations_*/JVM metrics.
+# Strategy:
+#   - Runner operation gauges/counters -> exact dashboard metric names, no extra labels.
+#   - Timers -> SUMMARY type with {quantile} labels (ms->s via valueFactor).
+#     Dashboard panels use {quantile="x"} selectors with histogram_quantile() fallback.
+#   - HTTP client -> SUMMARY by re-extracting labels from Micrometer's flattened MBean names.
+#     IMPORTANT: HTTP client beans have only one key property ("name") with NO "type" key,
+#     so the match pattern is metrics<name="httpClientRequests..."><>Attr — NOT type=null.
+#   - Noisy duplicate attributes (Number, per-minute rates) -> dropped.
+#   - All other JVM beans -> exported unchanged by the catch-all at the bottom.
+#
+# Rules are first-match-wins. After editing this file, restart the runner so it re-reads it.
+
+rules:
+
+  # -- Runner Operation Gauges -----------------------------------------------
+  # Micrometer's JmxMeterRegistry exposes each gauge with two attributes: Value (reading)
+  # and Number (index). Only Value is mapped; Number is dropped by the suppression rules below.
+
+  - pattern: 'metrics<name=runnerOperationsRunning, type=gauges><>Value'
+    name: runner_operations_running
+    type: GAUGE
+    help: "Number of currently running runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsInflight, type=gauges><>Value'
+    name: runner_operations_inflight
+    type: GAUGE
+    help: "Number of in-flight runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsQueued, type=gauges><>Value'
+    name: runner_operations_queued
+    type: GAUGE
+    help: "Number of queued runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsPoolCapacity, type=gauges><>Value'
+    name: runner_operations_pool_capacity
+    type: GAUGE
+    help: "Runner operation thread pool capacity"
+
+  - pattern: 'metrics<name=runnerOperationsPoolUtilization, type=gauges><>Value'
+    name: runner_operations_pool_utilization
+    type: GAUGE
+    help: "Runner operation thread pool utilization ratio (0.0-1.0)"
+
+  - pattern: 'metrics<name=runnerOperationsCompleted_total, type=gauges><>Value'
+    name: runner_operations_completed_total
+    type: COUNTER
+    help: "Total completed runner operations (monotonically increasing)"
+
+  # -- Reporter Gauges -------------------------------------------------------
+
+  - pattern: 'metrics<name=runnerReporterMax_delivery_delay_seconds, type=gauges><>Value'
+    name: runner_reporter_max_delivery_delay_seconds
+    type: GAUGE
+    help: "Maximum reporter event delivery delay in seconds"
+
+  - pattern: 'metrics<name=runnerReporterQueueSizeTotal, type=gauges><>Value'
+    name: runner_reporter_queue_size
+    type: GAUGE
+    help: "Current reporter queue size"
+
+  # -- Process / System CPU (Micrometer aliases) -----------------------------
+
+  - pattern: 'metrics<name=processCpuUsage, type=gauges><>Value'
+    name: process_cpu_usage
+    type: GAUGE
+    help: "Recent CPU usage of the JVM process (0.0-1.0)"
+
+  - pattern: 'metrics<name=systemCpuUsage, type=gauges><>Value'
+    name: system_cpu_usage
+    type: GAUGE
+    help: "Recent CPU usage of the whole system (0.0-1.0)"
+
+  # -- Runner Operation Meters (monotonic counters) --------------------------
+  # Micrometer JmxMeterRegistry exposes meters with a cumulative Count attribute — maps to
+  # the Prometheus _total convention. Dashboard uses rate(..._total[5m]) which resolves correctly.
+
+  - pattern: 'metrics<name=runnerOperationsAccepted, type=meters><>Count'
+    name: runner_operations_accepted_total
+    type: COUNTER
+    help: "Total accepted runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsReceived, type=meters><>Count'
+    name: runner_operations_received_total
+    type: COUNTER
+    help: "Total received runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsSuccessful, type=meters><>Count'
+    name: runner_operations_successful_total
+    type: COUNTER
+    help: "Total successful runner operations"
+
+  # May not be present on every Runner version; included for forward-compatibility.
+  - pattern: 'metrics<name=runnerOperationsErrored, type=meters><>Count'
+    name: runner_operations_errored_total
+    type: COUNTER
+    help: "Total errored runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsCancelled, type=meters><>Count'
+    name: runner_operations_cancelled_total
+    type: COUNTER
+    help: "Total cancelled runner operations"
+
+  - pattern: 'metrics<name=runnerOperationsRejected, type=meters><>Count'
+    name: runner_operations_rejected_total
+    type: COUNTER
+    help: "Total rejected runner operations"
+
+  # -- Invocations Timer (summary percentiles) -------------------------------
+  # Micrometer's JmxMeterRegistry emits pre-computed percentiles (not _bucket); exposed as SUMMARY.
+  # Timer durations are in milliseconds -> valueFactor 0.001 converts to seconds.
+  # Dashboard uses {quantile="x"} selectors directly (no histogram_quantile() needed).
+
+  - pattern: 'metrics<name=runnerOperationsInvocations\.handler\.([^,]+), type=timers><>(\d+)thPercentile'
+    name: runner_operations_invocations_seconds
+    type: SUMMARY
+    valueFactor: 0.001
+    labels:
+      handler: "$1"
+      quantile: "0.$2"
+    help: "Runner operation invocation latency percentiles (ms converted to s)"
+
+  - pattern: 'metrics<name=runnerOperationsInvocations\.handler\.([^,]+), type=timers><>Max'
+    name: runner_operations_invocations_seconds_max
+    type: GAUGE
+    valueFactor: 0.001
+    labels:
+      handler: "$1"
+    help: "Runner operation invocation latency max (ms converted to s)"
+
+  # -- Queue Wait Time Timer (summary percentiles) ---------------------------
+
+  - pattern: 'metrics<name=runnerOperationsQueue_wait_time, type=timers><>(\d+)thPercentile'
+    name: runner_operations_queue_wait_time_seconds
+    type: SUMMARY
+    valueFactor: 0.001
+    labels:
+      quantile: "0.$1"
+    help: "Runner operation queue wait time percentiles (ms converted to s)"
+
+  - pattern: 'metrics<name=runnerOperationsQueue_wait_time, type=timers><>Max'
+    name: runner_operations_queue_wait_time_seconds_max
+    type: GAUGE
+    valueFactor: 0.001
+    help: "Runner operation queue wait time max (ms converted to s)"
+
+  # -- Suppress noisy duplicates ---------------------------------------------
+
+  # Drop the Number attribute from runner/reporter gauges (same value as Value, just noise).
+  - pattern: 'metrics<name=(runnerOperations|runnerReporter|processCpuUsage|systemCpuUsage)[^,]*, type=gauges><>Number'
+    name: ""
+
+  # Drop per-interval rate attributes from runner meters — rate() in Prometheus is more accurate.
+  - pattern: 'metrics<name=(runnerOperations|runnerReporter)[^,]+, type=meters><>(FifteenMinuteRate|FiveMinuteRate|MeanRate|OneMinuteRate)'
+    name: ""
+
+  # Drop non-percentile timer attributes for the explicitly mapped timers.
+  - pattern: 'metrics<name=(runnerOperationsInvocations|runnerOperationsQueue_wait_time)[^,]*, type=timers><>(Mean|Min|StdDev|Count|FifteenMinuteRate|FiveMinuteRate|MeanRate|OneMinuteRate)'
+    name: ""
+
+  # -- JVM Threads (Micrometer-compatible aliases) ---------------------------
+  # The Threading MBean canonical name is java.lang:type=Threading (no name key).
+  # Use a broad regex to match regardless of extra key properties the exporter adds.
+
+  - pattern: 'java\.lang<.*type=Threading.*><>ThreadCount'
+    name: jvm_threads_live_threads
+    type: GAUGE
+    help: "Current number of live threads"
+
+  - pattern: 'java\.lang<.*type=Threading.*><>DaemonThreadCount'
+    name: jvm_threads_daemon_threads
+    type: GAUGE
+    help: "Current number of daemon threads"
+
+  - pattern: 'java\.lang<.*type=Threading.*><>PeakThreadCount'
+    name: jvm_threads_peak_threads
+    type: GAUGE
+    help: "Peak live thread count since JVM start or last reset"
+
+  # -- JVM GC Pause (Micrometer-compatible aliases) --------------------------
+  # Derived from java.lang:type=GarbageCollector MBeans.
+  # CollectionTime is in milliseconds -> valueFactor 0.001 converts to seconds.
+  # Using UNTYPED to prevent jmx_exporter v1.x from appending _total to the name.
+
+  - pattern: 'java\.lang<name=(.+), type=GarbageCollector><>CollectionCount'
+    name: jvm_gc_pause_seconds_count
+    type: UNTYPED
+    labels:
+      gc: "$1"
+    help: "Number of GC pauses (collection count)"
+
+  - pattern: 'java\.lang<name=(.+), type=GarbageCollector><>CollectionTime'
+    name: jvm_gc_pause_seconds_sum
+    type: UNTYPED
+    valueFactor: 0.001
+    labels:
+      gc: "$1"
+    help: "Total GC pause time in seconds (CollectionTime ms -> s)"
+
+  # -- HTTP Client Requests (Micrometer JmxMeterRegistry, tags flattened into name) --
+  # Micrometer's JmxMeterRegistry embeds all tags as dot-separated key.value pairs in the
+  # MBean name. Tag order: exception, method, serviceId, status, uri.
+  # serviceId is the full base URL — dropped here, captured by the .+ wildcard.
+  # IMPORTANT: these beans have only ONE key property ("name") in the ObjectName; there is no
+  # "type" key, so the match string is metrics<name="httpClientRequests..."><>attribute.
+  # Timer values are in milliseconds; valueFactor 0.001 converts to seconds.
+
+  - pattern: 'metrics<name="httpClientRequests\.exception\.([^.]+)\.method\.([^.]+)\.serviceId\..+\.status\.(\d+)\.uri\.(.+)"><>(\d+)thPercentile'
+    name: http_client_requests_seconds
+    type: SUMMARY
+    valueFactor: 0.001
+    labels:
+      exception: "$1"
+      method: "$2"
+      status: "$3"
+      uri: "$4"
+      quantile: "0.$5"
+    help: "HTTP client request latency percentiles (ms converted to s)"
+
+  - pattern: 'metrics<name="httpClientRequests\.exception\.([^.]+)\.method\.([^.]+)\.serviceId\..+\.status\.(\d+)\.uri\.(.+)"><>Max'
+    name: http_client_requests_seconds_max
+    type: GAUGE
+    valueFactor: 0.001
+    labels:
+      exception: "$1"
+      method: "$2"
+      status: "$3"
+      uri: "$4"
+    help: "HTTP client request latency max (ms converted to s)"
+
+  - pattern: 'metrics<name="httpClientRequests\.exception\.([^.]+)\.method\.([^.]+)\.serviceId\..+\.status\.(\d+)\.uri\.(.+)"><>Count'
+    name: http_client_requests_seconds_count
+    type: UNTYPED
+    labels:
+      exception: "$1"
+      method: "$2"
+      status: "$3"
+      uri: "$4"
+    help: "HTTP client request total count"
+
+  # Drop the noisy per-interval rates for HTTP client (rate() in Prometheus is more accurate).
+  - pattern: 'metrics<name="httpClientRequests\..+".*><>(FifteenMinuteRate|FiveMinuteRate|MeanRate|OneMinuteRate|Mean|Min|StdDev)'
+    name: ""
+
+  # -- Catch-all: export all remaining JMX beans unchanged -------------------
+  - pattern: ".*"
