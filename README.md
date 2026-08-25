@@ -24,6 +24,7 @@ as well as a reference and starting place for your own deployments.
 
 ### Kubernetes
 * `Pro` [kubernetes](./kubernetes)
+* `Pro` [Helm Chart](./kubernetes/helm/rundeckpro)
 
 ### Monitoring / Observability
 * [monitoring](./monitoring)

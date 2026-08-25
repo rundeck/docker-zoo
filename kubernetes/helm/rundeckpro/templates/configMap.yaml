@@ -1,0 +1,45 @@
+{{- if .Values.configMap.nodeSources }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.nodeSources.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "rundeckpro.labels" . | nindent 4 }}
+data:
+  resources.yaml: |
+    # Example node definitions
+    # Replace with your actual node inventory
+    example-node-01:
+        nodename: example-node-01
+        hostname: node-01.example.com
+        osFamily: linux
+        tags: linux,production
+    example-node-02:
+        nodename: example-node-02
+        hostname: node-02.example.com
+        osFamily: linux
+        tags: linux,staging
+    example-windows-01:
+        nodename: example-windows-01
+        hostname: win-01.example.com
+        osFamily: windows
+        tags: windows,production
+{{- end }}
+---
+{{- if .Values.configMap.cyberarkCerts }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.configMap.cyberarkCerts.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "rundeckpro.labels" . | nindent 4 }}
+data:
+  # Add your certificate data here if using CyberArk integration
+  # Example:
+  # ca-cert.pem: |
+  #   -----BEGIN CERTIFICATE-----
+  #   ...
+  #   -----END CERTIFICATE-----
+{{- end }}

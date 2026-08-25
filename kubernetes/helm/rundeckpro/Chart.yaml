@@ -1,0 +1,14 @@
+apiVersion: v2
+name: rundeckpro
+description: A Helm chart for deploying PagerDuty Runbook Automation (formerly Rundeck) on AWS EKS
+type: application
+version: 0.1.0
+appVersion: "5.17.0"
+keywords:
+  - rundeck
+  - runbook-automation
+  - pagerduty
+  - automation
+  - eks
+sources:
+  - https://github.com/rundeck/docker-zoo

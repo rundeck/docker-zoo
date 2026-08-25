@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rundeckpro.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- include "rundeckpro.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  strategy:
+    type: {{ .Values.deployment.strategy.type | default "RollingUpdate" }}
+  selector:
+    matchLabels:
+      {{- include "rundeckpro.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "rundeckpro.selectorLabels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsUser: 1000
+        fsGroup: 0
+      containers:
+        - name: rundeck
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          ports:
+            - containerPort: {{ .Values.service.targetPort }}
+              name: http
+              protocol: TCP
+          env:
+            - name: JAVA_OPTS
+              value: {{ .Values.rundeck.env.JAVA_OPTS | quote }}
+            - name: RUNDECK_GRAILS_URL
+              value: {{ .Values.rundeck.env.RUNDECK_GRAILS_URL | quote }}
+            
+            # Cluster configuration
+            - name: RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_INTERVAL
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_INTERVAL | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_HEARBEAT_DELAY
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_HEARBEAT_DELAY | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERINACTIVE
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERINACTIVE | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERDEAD
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERDEAD | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_ENABLED
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_ENABLED | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_POLICY
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_POLICY | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_DELAY
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_DELAY | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_SLEEP
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_SLEEP | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ENABLED
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ENABLED | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_POLICY
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_POLICY | quote }}
+            - name: RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ALLOWEDTAGS
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ALLOWEDTAGS | quote }}
+            
+            # Database configuration
+            - name: RUNDECK_DATABASE_DRIVER
+              value: {{ .Values.rundeck.env.RUNDECK_DATABASE_DRIVER | quote }}
+            - name: RUNDECK_DATABASE_URL
+              value: {{ .Values.rundeck.env.RUNDECK_DATABASE_URL | quote }}
+            - name: RUNDECK_DATABASE_USERNAME
+              value: {{ .Values.rundeck.env.RUNDECK_DATABASE_USERNAME | quote }}
+            - name: RUNDECK_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: database-password
+                  key: password
+            
+            # S3 Log Storage
+            - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_NAME
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_NAME | quote }}
+            - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET | quote }}
+            - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION | quote }}
+            - name: RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_PATH
+              value: {{ .Values.rundeck.env.RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_PATH | quote }}
+            
+            # Server configuration
+            - name: RUNDECK_SERVER_FORWARDED
+              value: {{ .Values.rundeck.env.RUNDECK_SERVER_FORWARDED | quote }}
+            - name: RUNDECK_SERVER_SESSION_TIMEOUT
+              value: {{ .Values.rundeck.env.RUNDECK_SERVER_SESSION_TIMEOUT | quote }}
+            
+            # UI configuration
+            - name: RUNDECK_GUI_INSTANCENAME
+              value: {{ .Values.rundeck.env.RUNDECK_GUI_INSTANCENAME | quote }}
+            
+            # Runner feature
+            - name: RUNDECK_RUNNER_FEATURE_ENABLED
+              value: {{ .Values.rundeck.env.RUNDECK_RUNNER_FEATURE_ENABLED | quote }}
+            
+            # LDAP/AD authentication (if configured)
+            {{- if .Values.rundeck.env.RUNDECK_JAAS_MODULES_0 }}
+            - name: RUNDECK_JAAS_MODULES_0
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_MODULES_0 | quote }}
+            - name: RUNDECK_JAAS_LDAP_FLAG
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_FLAG | quote }}
+            - name: RUNDECK_JAAS_LDAP_PROVIDERURL
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_PROVIDERURL | quote }}
+            - name: RUNDECK_JAAS_LDAP_BINDDN
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_BINDDN | quote }}
+            - name: RUNDECK_JAAS_LDAP_BINDPASSWORD
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_BINDPASSWORD | quote }}
+            - name: RUNDECK_JAAS_LDAP_USERBASEDN
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_USERBASEDN | quote }}
+            - name: RUNDECK_JAAS_LDAP_ROLEBASEDN
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_ROLEBASEDN | quote }}
+            - name: RUNDECK_JAAS_LDAP_ROLEOBJECTCLASS
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_ROLEOBJECTCLASS | quote }}
+            - name: RUNDECK_JAAS_LDAP_ROLENAMEATTRIBUTE
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_ROLENAMEATTRIBUTE | quote }}
+            - name: RUNDECK_JAAS_LDAP_ROLEMEMBERATTRIBUTE
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_LDAP_ROLEMEMBERATTRIBUTE | quote }}
+            {{- end }}
+            
+            # File-based authentication
+            - name: RUNDECK_JAAS_MODULES_1
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_MODULES_1 | quote }}
+            - name: RUNDECK_JAAS_FILE_FLAG
+              value: {{ .Values.rundeck.env.RUNDECK_JAAS_FILE_FLAG | quote }}
+          
+          volumeMounts:
+            - name: acl
+              mountPath: /home/rundeck/etc/admin-role.aclpolicy
+              subPath: admin-role.aclpolicy
+            - name: kubeconfig
+              mountPath: /home/rundeck/.kube/config
+              subPath: config
+            - name: realm
+              mountPath: /home/rundeck/server/config/realm.properties
+              subPath: realm.properties
+            {{- if .Values.configMap.nodeSources }}
+            - name: node-sources
+              mountPath: {{ .Values.configMap.nodeSources.mountPath }}
+            {{- end }}
+            {{- if .Values.configMap.cyberarkCerts }}
+            - name: cyberark-certs
+              mountPath: {{ .Values.configMap.cyberarkCerts.mountPath }}
+            {{- end }}
+      
+      volumes:
+        - name: acl
+          secret:
+            secretName: {{ .Values.secrets.acl.name }}
+        - name: kubeconfig
+          secret:
+            secretName: {{ .Values.secrets.kubeconfig.name }}
+        - name: realm
+          secret:
+            secretName: {{ .Values.secrets.realm.name }}
+        {{- if .Values.configMap.nodeSources }}
+        - name: node-sources
+          configMap:
+            name: {{ .Values.configMap.nodeSources.name }}
+            items:
+              - key: resources.yaml
+                path: resources.yaml
+        {{- end }}
+        {{- if .Values.configMap.cyberarkCerts }}
+        - name: cyberark-certs
+          configMap:
+            name: {{ .Values.configMap.cyberarkCerts.name }}
+        {{- end }}
+      
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

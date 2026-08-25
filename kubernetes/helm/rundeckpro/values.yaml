@@ -1,0 +1,147 @@
+# Default values for rundeckpro Helm chart
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Number of Rundeck replicas to deploy
+replicaCount: 2
+
+# Kubernetes namespace for Rundeck resources
+namespace: rundeck
+
+# Docker image configuration
+image:
+  repository: rundeckpro/enterprise
+  tag: 5.17.0-20251103
+  pullPolicy: Always
+
+# Kubernetes Service configuration
+service:
+  type: ClusterIP
+  port: 443
+  targetPort: 4440
+
+# Ingress configuration for external access
+ingress:
+  enabled: true
+  ingressClassName: alb
+  # Replace with your own domain
+  host: rundeck.example.com
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+    # Replace with your ACM certificate ARN
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-west-2:123456789012:certificate/your-certificate-id
+    alb.ingress.kubernetes.io/ssl-redirect: '443'
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    alb.ingress.kubernetes.io/target-group-attributes: stickiness.enabled=true,stickiness.type=app_cookie,stickiness.app_cookie.cookie_name=JSESSIONID,stickiness.app_cookie.duration_seconds=86400
+    # Replace with your domain for ExternalDNS
+    external-dns.alpha.kubernetes.io/hostname: "rundeck.example.com"
+
+# Rundeck application configuration
+rundeck:
+  env:
+    # JVM memory settings
+    JAVA_OPTS: "-Xms2g -Xmx2.5g"
+    
+    # Rundeck URL - replace with your domain
+    RUNDECK_GRAILS_URL: "https://rundeck.example.com"
+    
+    # Database configuration - replace with your RDS endpoint
+    RUNDECK_DATABASE_DRIVER: "org.mariadb.jdbc.Driver"
+    RUNDECK_DATABASE_URL: "jdbc:mysql://your-rds-endpoint.rds.amazonaws.com/rundeck?autoReconnect=true&allowPublicKeyRetrieval=true&useSSL=false"
+    RUNDECK_DATABASE_USERNAME: "rundeckuser"
+    # Database password is injected via Kubernetes secret (see README)
+    
+    # Cluster mode configuration
+    RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_INTERVAL: "30"
+    RUNDECK_PLUGIN_CLUSTER_HEARBEAT_DELAY: "10"
+    RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERINACTIVE: "150"
+    RUNDECK_PLUGIN_CLUSTER_HEARTBEAT_CONSIDERDEAD: "300"
+    RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_ENABLED: "true"
+    RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_POLICY: "any"
+    RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_DELAY: "60"
+    RUNDECK_PLUGIN_CLUSTER_AUTOTAKEOVER_SLEEP: "300"
+    RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ENABLED: "true"
+    RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_POLICY: "Load"
+    RUNDECK_PLUGIN_CLUSTER_REMOTEEXECUTION_ALLOWEDTAGS: "*"
+    
+    # Server configuration
+    RUNDECK_SERVER_FORWARDED: "true"
+    RUNDECK_SERVER_SESSION_TIMEOUT: "1800"
+    
+    # S3 Log Storage configuration - replace with your S3 bucket
+    RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_NAME: "com.rundeck.rundeckpro.amazon-s3"
+    RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_BUCKET: "your-s3-bucket-name"
+    RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_REGION: "us-west-2"
+    RUNDECK_PLUGIN_EXECUTIONFILESTORAGE_S3_PATH: "rundeck-logs/${job.project}/${job.execid}.log"
+    
+    # UI configuration
+    RUNDECK_GUI_INSTANCENAME: "true"
+    
+    # Runner feature
+    RUNDECK_RUNNER_FEATURE_ENABLED: "true"
+    
+    # LDAP/AD authentication (optional - remove if not using)
+    RUNDECK_JAAS_MODULES_0: "JettyCombinedLdapLoginModule"
+    RUNDECK_JAAS_LDAP_FLAG: sufficient
+    RUNDECK_JAAS_LDAP_PROVIDERURL: "ldap://your-ldap-server.example.com:389"
+    RUNDECK_JAAS_LDAP_BINDDN: "CN=rundeck,OU=Users,DC=example,DC=com"
+    RUNDECK_JAAS_LDAP_BINDPASSWORD: "changeme"
+    RUNDECK_JAAS_LDAP_USERBASEDN: "OU=Users,DC=example,DC=com"
+    RUNDECK_JAAS_LDAP_ROLEBASEDN: "DC=example,DC=com"
+    RUNDECK_JAAS_LDAP_ROLEOBJECTCLASS: "group"
+    RUNDECK_JAAS_LDAP_ROLENAMEATTRIBUTE: "cn"
+    RUNDECK_JAAS_LDAP_ROLEMEMBERATTRIBUTE: "member"
+    
+    # File-based authentication
+    RUNDECK_JAAS_MODULES_1: PropertyFileLoginModule
+    RUNDECK_JAAS_FILE_FLAG: sufficient
+
+# Deployment strategy
+deployment:
+  strategy:
+    type: Recreate  # or "RollingUpdate"
+
+# Kubernetes secrets references
+secrets:
+  acl:
+    name: rundeckpro-admin-acl
+  kubeconfig:
+    name: kubeconfig
+  realm:
+    name: realm-properties
+
+# ConfigMap references
+configMap:
+  nodeSources:
+    name: node-sources
+    mountPath: /home/rundeck/resources.yaml
+  cyberarkCerts:
+    name: cyberark-certs
+    mountPath: /home/rundeck/certs
+
+# Resource requests and limits
+resources:
+  requests:
+    memory: "3Gi"
+    cpu: "800m"
+  limits:
+    memory: "3.5Gi"
+    cpu: "950m"
+
+# Node selection, tolerations, and affinity (optional)
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Values for --set-file parameters (see README for usage)
+aclFile: ""
+kubeconfig: ""
+realm: ""
+
+# CyberArk certificate configuration (optional)
+cyberarkCerts:
+  keystorePassword: changeit
+  clientkeystore: clientkeystore
