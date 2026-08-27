@@ -2,21 +2,24 @@ version: '3'
 
 services:
     rundeck:
-        image: rundeck/rundeck:SNAPSHOT
+        image: ${RUNDECK_IMAGE}
         links:
           - mysql
         environment:
+            TZ: America/Los_Angeles
             RUNDECK_DATABASE_DRIVER: org.mariadb.jdbc.Driver
             RUNDECK_DATABASE_USERNAME: rundeck
             RUNDECK_DATABASE_PASSWORD: rundeck
             RUNDECK_DATABASE_URL: jdbc:mysql://mysql/rundeck?autoReconnect=true&useSSL=false
-            RUNDECK_GRAILS_URL: localhost:4440
+            RUNDECK_GRAILS_URL: http://localhost:4440
         volumes:
           - ${RUNDECK_LICENSE_FILE:-/dev/null}:/home/rundeck/etc/rundeckpro-license.key
         ports:
           - 4440:4440
     mysql:
-        image: mysql:5.7
+        image: mysql:5.7.29
+        # Required for arm64 (Apple M1 chip)
+        platform: linux/x86_64
         expose:
           - 3306
         environment:
